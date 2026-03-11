@@ -20,7 +20,7 @@ This repository contains all code and analysis pipelines for a multi-platform bi
 | GSE149507 | Microarray | 14 paired | GEO |
 | GSE60052 | RNA-seq | 79 SCLC / 7 Normal | GEO |
 | GSE43346 | Microarray | 23 SCLC / 1 Normal | GEO |
-| GSE69091 | Mouse Notch model | - | GEO |
+| GSE69091 | Mouse Notch model | 3 Notch ICD / 3 SCLC | GEO |
 | Liu et al. 2024 | Proteomics | 112 SCLC | Cell |
 
 ### Repository Structure
