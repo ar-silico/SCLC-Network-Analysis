@@ -1,0 +1,12 @@
+Gene,P_raw,P_corrected,Significant_after_correction
+KIF11,0.0347,0.0818,False
+CENPF,0.0426,0.0818,False
+CDK1,0.077,0.0847,False
+DLGAP5,0.0911,0.0911,False
+CASP1,0.0006,0.0044,True
+IL18,0.0008,0.0044,True
+TLR2,0.0116,0.0427,True
+TLR3,0.0669,0.0818,False
+CEBPB,0.0551,0.0818,False
+ITGB5,0.053,0.0818,False
+CD44,0.0628,0.0818,False
