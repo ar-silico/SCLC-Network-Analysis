@@ -1,0 +1,71 @@
+# requirements.txt
+# SCLC Network Analysis — Python dependencies
+# Python 3.11
+# Generated from analysis environment — versions verified against pip freeze
+
+# =============================================================================
+# DATA ACQUISITION
+# =============================================================================
+GEOparse==2.0.4           # GEO dataset download and parsing
+requests==2.32.3          # HTTP requests (GEOparse dependency)
+
+# =============================================================================
+# GENE ANNOTATION AND MAPPING
+# =============================================================================
+mygene==3.2.2             # Entrez ID → HGNC symbol mapping; mouse→human ortholog mapping
+biothings_client==0.4.1   # mygene dependency
+biopython==1.84           # Biological sequence utilities
+
+# =============================================================================
+# CORE DATA ANALYSIS
+# =============================================================================
+numpy==1.26.4             # Numerical operations
+pandas==2.1.4             # Data manipulation and expression matrices
+scipy==1.11.4             # Mann-Whitney U, Wilcoxon signed-rank tests
+statsmodels==0.14.0       # Additional statistical models
+patsy==0.5.3              # Formula interface (lifelines/statsmodels dependency)
+
+# =============================================================================
+# DIFFERENTIAL EXPRESSION (R INTERFACE)
+# =============================================================================
+rpy2==3.6.5               # Python-R interface for limma (GSE69091 DEG)
+rpy2-rinterface==3.6.4    # rpy2 low-level interface
+rpy2-robjects==3.6.3      # rpy2 R objects
+
+# =============================================================================
+# NETWORK ANALYSIS
+# =============================================================================
+networkx==3.1             # PPI network construction and analysis
+
+# =============================================================================
+# SURVIVAL ANALYSIS
+# =============================================================================
+lifelines==0.30.3         # Kaplan-Meier plots, Cox PH model, Schoenfeld residuals
+diptest==0.10.0           # Hartigan's dip test for unimodality (median split justification)
+
+# =============================================================================
+# PROTEOMICS DATA I/O
+# =============================================================================
+openpyxl==3.0.10          # Read/write .xlsx files (CPTAC_S3_tumor_NAT.xlsx)
+pyxlsb==1.0.10            # Read .xlsb files (CPTAC_S1_clinical.xlsb)
+
+# =============================================================================
+# VISUALIZATION
+# =============================================================================
+matplotlib==3.8.0         # Core plotting
+seaborn==0.12.2           # Statistical visualization
+matplotlib-venn==1.1.2    # Venn diagrams (gene overlap, consensus DEG)
+
+# =============================================================================
+# PIPELINE EXECUTION
+# =============================================================================
+nbconvert==7.10.0         # Notebook execution via Snakemake (jupyter nbconvert --execute)
+nbformat==5.9.2           # Notebook format handling
+ipykernel==6.28.0         # Jupyter kernel for notebook execution
+
+# =============================================================================
+# NOTE: R packages required (install separately in R)
+# =============================================================================
+# limma          — DEG analysis for GSE69091 (BioConductor)
+# rpy2 bridges Python to these R packages — they must be installed in the
+# R environment accessible to rpy2.
