@@ -141,8 +141,8 @@ rule preprocess_GSE60052:
     output:
         matrix   = "data/processed/GSE60052_expression_matrix.csv",
         metadata = "data/metadata/GSE60052_metadata.csv",
-        boxplot  = "figures/GSE60052_boxplot.png",
-        pca      = "figures/GSE60052_PCA.png"
+        boxplot  = "figures/GSE60052_boxplot_coding.png",
+        pca      = "figures/GSE60052_PCA_coding.png"
     log:
         "logs/preprocess_GSE60052.log"
     shell:
@@ -416,9 +416,8 @@ rule ppi_plot:
     # hub network motivated MCL cluster-based approach.
     # This figure retained as methodological justification showing
     # analytical decision was data-driven. See DECISIONS.md.
-    # WARNING: ENSP IDs, gene lists, and hub directions are
-    # hardcoded — to be replaced with dynamic lookups in cleanup.
     input:
+        annotations = "results/PPI/hub_network_annotations.tsv",
         mcc         = "results/PPI/MCC_top_10.csv",
         betweenness = "results/PPI/Betweenness_top_10.csv",
         edges       = "results/PPI/hub_network_edges.tsv",
@@ -470,9 +469,8 @@ rule ppi_plot:
 
 rule ppi_cluster1:
     # NOTE: Hub genes identified via MCC + Betweenness from CytoHubba.
-    # One ENSP ID unresolved by mygene — identified as CCNA2 via
     # STRING annotation cross-reference. Currently hardcoded as
-    # fillna('CCNA2') — to be replaced dynamically in cleanup.
+    # Hub genes identified via annotation TSV lookup
     # See DECISIONS.md.
     input:
         annotations = "results/PPI/cluster1_annotations.tsv",
@@ -494,9 +492,7 @@ rule ppi_cluster1:
 
 rule ppi_cluster2:
     # NOTE: Hub genes identified via MCC + Betweenness from CytoHubba.
-    # One ENSP ID unresolved by mygene — identified as MYD88 via
     # STRING annotation cross-reference. Currently hardcoded as
-    # fillna('MYD88') — to be replaced dynamically in cleanup.
     # See DECISIONS.md.
     input:
         annotations = "results/PPI/cluster2_annotations.tsv",
@@ -518,7 +514,6 @@ rule ppi_cluster2:
 
 rule ppi_cluster3:
     # NOTE: Hub genes identified via MCC + Betweenness from CytoHubba.
-    # One ENSP ID unresolved by mygene — identified as ZFP36 via
     # STRING annotation cross-reference (same approach as clusters 1,2).
     # Cross-reference logic for all three clusters documented here.
     # Produces two figures: method-colored and direction-colored network.
@@ -597,11 +592,12 @@ rule hub_gene_directional_verification:
     # Hub gene lists explicitly defined — union of MCC + Betweenness
     # top 10 for clusters 1-3, top 5 by degree for cluster 4.
     # All 50 hub genes confirmed in consensus.
-    # TODO (cleanup): save per-cluster hub gene list files here for
+    # Per-cluster hub gene list files saved to results/DEG/hub_gene_lists/
     # use by all downstream notebooks. See DECISIONS.md.
     input:
         consensus = "results/DEG/consensus_DEGs.csv"
     output:
+        hub_lists = directory("results/DEG/hub_gene_lists"),
         verification = "results/DEG/hub_gene_directional_verification.csv"
     log:
         "logs/hub_gene_directional_verification.log"
@@ -622,15 +618,17 @@ rule gene_rescued_by_notch:
     # save step must be added during cleanup. See DECISIONS.md.
     input:
         rescued    = "results/DEG/notch_rescued_consensus_down.csv",
-        suppressed = "results/DEG/notch_suppressed_consensus_up.csv"
+        suppressed = "results/DEG/notch_suppressed_consensus_up.csv",
+        hub_lists  = directory("results/DEG/hub_gene_lists")
     output:
-        rescued_hubs = "results/DEG/notch_rescued_hub_genes.csv"
+        rescued_hubs = "results/DEG/notch_rescued_hub_genes.csv",
+        suppressed_hubs = "results/DEG/notch_suppressed_hub_genes.csv"
     log:
         "logs/gene_rescued_by_notch.log"
     shell:
         """
-        jupyter nbconvert --to notebook --execute notebooks/gene_rescused_by_notch.ipynb \
-            --output notebooks/gene_rescused_by_notch_executed.ipynb \
+        jupyter nbconvert --to notebook --execute notebooks/gene_rescued_by_notch.ipynb \
+            --output notebooks/gene_rescued_by_notch_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -791,9 +789,9 @@ rule protein_validation_survival:
     # S4 investigated and documented as non-applicable by design —
     # Liu et al. S4 uses survival-first concordance pipeline, orthogonal
     # to our network topology approach.
-    # WARNING: Hub gene lists hardcoded — replace with hub gene list
     # files in cleanup. See DECISIONS.md.
     input:
+        hub_lists = directory("results/DEG/hub_gene_lists"),
         s3        = "results/proteomics/CPTAC_S3_tumor_NAT.xlsx",
         s4        = "results/proteomics/CPTAC_S4_survival.xlsx",
         s1        = "results/proteomics/CPTAC_S1_clinical.xlsb",
@@ -821,6 +819,7 @@ rule proportional_hazard_bh:
     # consider merging or saving intermediate merged_df in cleanup.
     # See DECISIONS.md.
     input:
+        hub_lists = directory("results/DEG/hub_gene_lists"),
         s1 = "results/proteomics/CPTAC_S1_clinical.xlsb",
         hr = "results/proteomics/km_survival_hr_results.csv"
     output:

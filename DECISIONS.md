@@ -137,7 +137,7 @@ Fisher's exact test used to confirm Notch rescue and suppression overlaps are no
 - Universe = 15,504 genes (consensus gene pool)
 
 ### Rescued Hub Genes
-CD44, CCND1, KDR identified as hub genes rescued by Notch activation — cross-referenced from whole-network hub gene list against Notch-rescued consensus DEGs.
+CD44, CCND1, KDR identified as hub genes rescued by Notch activation in initial analysis using whole-network hub list. Results to be updated after dry run — reanalysis now uses full 50 hub genes across all four clusters.
 
 ---
 
@@ -214,18 +214,27 @@ The following steps require manual execution and cannot be automated in the Snak
 3. **Cytoscape + CytoHubba (Checkpoint 2)**: Load cluster{N}_edges.tsv for clusters 1–3, run MCC scoring (top 10) and Betweenness scoring (top 10), export CSVs. Cluster 4 handled automatically by pipeline.
 4. **DAVID (Checkpoint 3)**: Upload per-cluster gene lists for clusters 1–4, run functional annotation, download enrichment CSVs.
 
-### Known Cleanup Items (to complete before submission)
-- Fisher's exact test hardcoded numbers in `Consensus_DEGs.ipynb` → replace with dynamic variables
-- Concordance percentages in GSE43346 validation summary → compute dynamically
-- Per-cluster hub gene list files → save from `hub_gene_directional_verification.ipynb`, use in all downstream notebooks to replace hardcoded gene lists
-- `gene_rescused_by_notch.ipynb` → add save step for output file; fix typo in filename → `gene_rescued_by_notch.ipynb`
-- `direction_check_for_cluster_4_and_5.ipynb` → add save step for output file
-- GSE30219 DEG notebook → update metadata path to `data/metadata/`
-- GSE149507 preprocessing → update metadata path to `data/metadata/`
-- GSE60052 figures → drop `_coding` suffix from final figure filenames
-- `cluster1_enrichment.ipynb` → fix variable named `cluster2_enrich` (copy-paste error)
-- `R_DEG_GSE69091.ipynb` → add missing imports: `plt`, `np`, `Patch`
-- `full_enrichment_table.ipynb` → extend BH correction loop to include cluster 4
-- `proportional_hazard` notebook → consider merging data loading with survival notebook to eliminate duplication
-- ENSP ID fillna resolutions in cluster 1, 2, 3 notebooks → replace hardcoded `fillna('CCNA2')` etc. with dynamic STRING annotation cross-reference lookup
-- All notebook filenames → spaces to underscores, consistent naming convention
+## 11. POST-CLEANUP FLAGS
+These items require new analysis or structural changes — deferred deliberately 
+to keep cleanup and new work separate. To be addressed after dry run confirms 
+cleaned pipeline reproduces original outputs exactly.
+
+### Notch Rescue Reanalysis
+`gene_rescued_by_notch.ipynb` currently uses the whole-network hub gene list 
+from the initial full network analysis. Should be rerun using the full 50 hub 
+genes across all four clusters from `hub_gene_directional_verification.ipynb`. 
+Update Snakefile inputs and DECISIONS.md rescue results accordingly once rerun 
+is complete.
+
+### Cluster 4 Notebook Split
+`cluster4_enrichment.ipynb` handles both PPI network construction and 
+enrichment visualization in a single notebook. This prevents 
+`full_enrichment_table.ipynb` from covering cluster 4 in its BH correction 
+loop consistently with clusters 1-3. Consider splitting into 
+`PPI_cluster_4.ipynb` and `cluster4_enrichment.ipynb` to align pipeline 
+structure across all four clusters. Requires Snakefile restructuring.
+
+### ENSP Dynamic Lookup for Full Network
+`PPI_plot.ipynb` depends on `hub_network_annotations.tsv` which must be 
+downloaded manually from STRING (full hub network, confidence=0.700). 
+File to be saved as `results/PPI/hub_network_annotations.tsv` before dry run.
