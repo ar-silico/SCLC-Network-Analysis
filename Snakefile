@@ -619,7 +619,7 @@ rule gene_rescued_by_notch:
     input:
         rescued    = "results/DEG/notch_rescued_consensus_down.csv",
         suppressed = "results/DEG/notch_suppressed_consensus_up.csv",
-        hub_lists  = directory("results/DEG/hub_gene_lists")
+        hub_lists  = "results/DEG/hub_gene_lists"
     output:
         rescued_hubs = "results/DEG/notch_rescued_hub_genes.csv",
         suppressed_hubs = "results/DEG/notch_suppressed_hub_genes.csv"
@@ -791,7 +791,7 @@ rule protein_validation_survival:
     # to our network topology approach.
     # files in cleanup. See DECISIONS.md.
     input:
-        hub_lists = directory("results/DEG/hub_gene_lists"),
+        hub_lists = "results/DEG/hub_gene_lists",
         s3        = "results/proteomics/CPTAC_S3_tumor_NAT.xlsx",
         s4        = "results/proteomics/CPTAC_S4_survival.xlsx",
         s1        = "results/proteomics/CPTAC_S1_clinical.xlsb",
@@ -819,7 +819,7 @@ rule proportional_hazard_bh:
     # consider merging or saving intermediate merged_df in cleanup.
     # See DECISIONS.md.
     input:
-        hub_lists = directory("results/DEG/hub_gene_lists"),
+        hub_lists = "results/DEG/hub_gene_lists",
         s1 = "results/proteomics/CPTAC_S1_clinical.xlsb",
         hr = "results/proteomics/km_survival_hr_results.csv"
     output:

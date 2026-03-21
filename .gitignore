@@ -205,3 +205,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# SCLC project — local only, do not push
+data/
+.snakemake/
+results/proteomics/
+logs/
+checkpoints/
