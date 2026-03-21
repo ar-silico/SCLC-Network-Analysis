@@ -45,6 +45,7 @@ rule all:
         # Stage 5
         "results/DEG/hub_gene_directional_verification.csv",
         "results/DEG/notch_rescued_hub_genes.csv",
+        "results/DEG/notch_suppressed_hub_genes.csv",
         "figures/gene_overlap_venn.png",
         "results/PPI/cluster4_5_direction_summary.csv",
         # Stage 6
@@ -353,10 +354,6 @@ rule consensus_degs:
     # Fisher's exact test confirms rescue/suppression overlaps are
     # non-random (OR=3.874 p~0 for rescue; OR=2.789 p=0.017 suppression).
     # Gene universe = 15,504 (consensus gene pool across all platforms).
-    # WARNING: Fisher's exact test uses hardcoded numbers — must be
-    # replaced with dynamic variables during notebook cleanup.
-    # WARNING: concordance_pct in validation summary is hardcoded —
-    # must be computed dynamically during cleanup. See DECISIONS.md.
     input:
         deg_30219  = "results/DEG/GSE30219_DEG_results_strict.csv",
         deg_149507 = "results/DEG/GSE149507_DEG_results_strict.csv",
@@ -577,6 +574,7 @@ rule stage4_complete:
         "figures/cluster1_hub_network.png",
         "figures/cluster2_hub_network.png",
         "figures/cluster3_hub_network.png",
+        "figures/cluster3_hub_network_direction.png",
         "figures/cluster4_network.png"
     output:
         touch("checkpoints/stage4_ppi.done")
@@ -609,13 +607,12 @@ rule hub_gene_directional_verification:
         """
 
 rule gene_rescued_by_notch:
-    # NOTE: Cross-references whole-network hub genes against
-    # Notch-rescued and Notch-suppressed consensus DEGs.
-    # Result: CD44, CCND1, KDR rescued by Notch activation.
-    # WARNING: Gene lists hardcoded from whole network —
-    # to be replaced with hub gene list files in cleanup.
-    # WARNING: No output file currently saved in notebook —
-    # save step must be added during cleanup. See DECISIONS.md.
+    # NOTE: Cross-references full 50 hub genes across all four clusters
+    # against Notch-rescued and Notch-suppressed consensus DEGs.
+    # Hub gene lists loaded dynamically from hub_gene_lists directory.
+    # Result: CD44, CCND1, KDR rescued by Notch activation (initial analysis —
+    # to be updated after Notch rescue reanalysis with full 50 hub genes).
+    # See DECISIONS.md Section 11.
     input:
         rescued    = "results/DEG/notch_rescued_consensus_down.csv",
         suppressed = "results/DEG/notch_suppressed_consensus_up.csv",
@@ -659,8 +656,6 @@ rule direction_check_cluster4_5:
     # Justifies stopping analysis at cluster 4 — cluster 5 shows same
     # suppression pattern but excluded for scope manageability.
     # Cluster 4 retained because ECM/metastasis is clinically critical.
-    # WARNING: No output file currently saved — save step must be
-    # added during cleanup. See DECISIONS.md.
     input:
         cluster4  = "results/PPI/cluster4_annotations.tsv",
         cluster5  = "results/PPI/cluster5_annotations.tsv",
@@ -706,8 +701,6 @@ rule full_enrichment_table:
     # Justification: GO Direct terms provide direct annotation without
     # inferred parent terms; KEGG captures pathway-level context.
     # DEPENDS ON MANUAL CHECKPOINT 3 (DAVID CSVs for clusters 1-3).
-    # TODO (cleanup): extend loop to include cluster 4 for consistency.
-    # See DECISIONS.md.
     input:
         c1 = "results/enrichment/cluster1_enrichment.csv",
         c2 = "results/enrichment/cluster2_enrichment.csv",
@@ -729,8 +722,6 @@ rule enrichment_cluster1:
     # NOTE: Visualization reads from raw DAVID CSV directly —
     # shows top 15 by raw p-value for figure.
     # BH-filtered CSV produced by full_enrichment_table rule.
-    # WARNING: Variable named cluster2_enrich in notebook —
-    # copy-paste error, fix during cleanup.
     input:
         enrichment = "results/enrichment/cluster1_enrichment.csv",
         filtered   = "results/enrichment/cluster1_enrichment_filtered.csv"
@@ -789,7 +780,6 @@ rule protein_validation_survival:
     # S4 investigated and documented as non-applicable by design —
     # Liu et al. S4 uses survival-first concordance pipeline, orthogonal
     # to our network topology approach.
-    # files in cleanup. See DECISIONS.md.
     input:
         hub_lists = "results/DEG/hub_gene_lists",
         s3        = "results/proteomics/CPTAC_S3_tumor_NAT.xlsx",

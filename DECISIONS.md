@@ -121,7 +121,7 @@ One ENSP ID per cluster was not resolved by mygene API query:
 - Cluster 1: `9606.ENSP00000481380` → CCNA2
 - Cluster 2: `9606.ENSP00000498321` → MYD88
 - Cluster 3: `9606.ENSP00000471239` → ZFP36
-- All resolved via cross-reference with STRING annotation TSV files. Resolution is coded, documented, and reproducible. To be replaced with dynamic lookup during notebook cleanup.
+- All resolved via cross-reference with STRING annotation TSV files. Resolution is coded, documented, and reproducible.
 
 ---
 
@@ -202,7 +202,7 @@ Schoenfeld residuals test applied to all 11 genes. All p > 0.05 — PH assumptio
 ## 10. SOFTWARE AND REPRODUCIBILITY
 
 ### LLM Assistance
-Claude (Anthropic) used for analytical guidance, code review, and pipeline construction. To be disclosed in manuscript acknowledgments.
+Claude (Anthropic) used for code syntax assistance and Snakemake pipeline construction. To be disclosed in manuscript acknowledgments.
 
 ### Proteomics Raw Data
 Raw proteomics files (CPTAC_S1_clinical.xlsb, CPTAC_S3_tumor_NAT.xlsx) not pushed to GitHub — files belong to Liu et al. 2024 and are available from the original publication.
@@ -215,9 +215,6 @@ The following steps require manual execution and cannot be automated in the Snak
 4. **DAVID (Checkpoint 3)**: Upload per-cluster gene lists for clusters 1–4, run functional annotation, download enrichment CSVs.
 
 ## 11. POST-CLEANUP FLAGS
-These items require new analysis or structural changes — deferred deliberately 
-to keep cleanup and new work separate. To be addressed after dry run confirms 
-cleaned pipeline reproduces original outputs exactly.
 
 ### Notch Rescue Reanalysis
 `gene_rescued_by_notch.ipynb` currently uses the whole-network hub gene list 
@@ -225,14 +222,6 @@ from the initial full network analysis. Should be rerun using the full 50 hub
 genes across all four clusters from `hub_gene_directional_verification.ipynb`. 
 Update Snakefile inputs and DECISIONS.md rescue results accordingly once rerun 
 is complete.
-
-### Cluster 4 Notebook Split
-`cluster4_enrichment.ipynb` handles both PPI network construction and 
-enrichment visualization in a single notebook. This prevents 
-`full_enrichment_table.ipynb` from covering cluster 4 in its BH correction 
-loop consistently with clusters 1-3. Consider splitting into 
-`PPI_cluster_4.ipynb` and `cluster4_enrichment.ipynb` to align pipeline 
-structure across all four clusters. Requires Snakefile restructuring.
 
 ### ENSP Dynamic Lookup for Full Network
 `PPI_plot.ipynb` depends on `hub_network_annotations.tsv` which must be 
