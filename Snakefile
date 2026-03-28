@@ -783,7 +783,6 @@ rule protein_validation_survival:
     input:
         hub_lists = "results/DEG/hub_gene_lists",
         s3        = "results/proteomics/CPTAC_S3_tumor_NAT.xlsx",
-        s4        = "results/proteomics/CPTAC_S4_survival.xlsx",
         s1        = "results/proteomics/CPTAC_S1_clinical.xlsb",
         consensus = "results/DEG/consensus_DEGs.csv"
     output:
