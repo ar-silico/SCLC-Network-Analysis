@@ -90,7 +90,7 @@ rule preprocess_GSE30219:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/GSE30219.ipynb \
-            --output notebooks/GSE30219_executed.ipynb \
+            --output GSE30219_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -111,7 +111,7 @@ rule preprocess_GSE149507:
     # Final outputs are _final suffixed files.
     output:
         matrix   = "data/processed/GSE149507_filtered_expression_matrix_final.csv",
-        metadata = "data/processed/GSE149507_filtered_metadata_final.csv",
+        metadata = "data/metadata/GSE149507_filtered_metadata_final.csv",
         boxplot  = "figures/GSE149507_filtered_boxplot_final.png",
         pca      = "figures/GSE149507_filtered_PCA_final.png"
     log:
@@ -119,7 +119,7 @@ rule preprocess_GSE149507:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/GSE149507.ipynb \
-            --output notebooks/GSE149507_executed.ipynb \
+            --output GSE149507_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -149,7 +149,7 @@ rule preprocess_GSE60052:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/GSE60052.ipynb \
-            --output notebooks/GSE60052_executed.ipynb \
+            --output GSE60052_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -173,7 +173,7 @@ rule preprocess_GSE43346:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/GSE43346.ipynb \
-            --output notebooks/GSE43346_executed.ipynb \
+            --output GSE43346_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -201,7 +201,7 @@ rule preprocess_GSE69091:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/GSE69091.ipynb \
-            --output notebooks/GSE69091_executed.ipynb \
+            --output GSE69091_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -248,7 +248,7 @@ rule deg_GSE30219:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/DEG_GSE30219.ipynb \
-            --output notebooks/DEG_GSE30219_executed.ipynb \
+            --output DEG_GSE30219_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -270,7 +270,7 @@ rule deg_GSE60052:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/DEG_GSE60052.ipynb \
-            --output notebooks/DEG_GSE60052_executed.ipynb \
+            --output DEG_GSE60052_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -284,7 +284,7 @@ rule deg_GSE149507:
     # See DECISIONS.md.
     input:
         matrix   = "data/processed/GSE149507_filtered_expression_matrix_final.csv",
-        metadata = "data/processed/GSE149507_filtered_metadata_final.csv"
+        metadata = "data/metadata/GSE149507_filtered_metadata_final.csv",
     output:
         full    = "results/DEG/GSE149507_DEG_results.csv",
         stats   = "results/DEG/GSE149507_DEG_results_stats_only.csv",
@@ -295,7 +295,7 @@ rule deg_GSE149507:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/DEG_GSE149507.ipynb \
-            --output notebooks/DEG_GSE149507_executed.ipynb \
+            --output DEG_GSE149507_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -318,7 +318,7 @@ rule deg_GSE69091:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/R_DEG_GSE69091.ipynb \
-            --output notebooks/R_DEG_GSE69091_executed.ipynb \
+            --output R_DEG_GSE69091_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -372,7 +372,7 @@ rule consensus_degs:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/Consensus_DEGs.ipynb \
-            --output notebooks/Consensus_DEGs_executed.ipynb \
+            --output Consensus_DEGs_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -426,7 +426,7 @@ rule ppi_plot:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/PPI_plot.ipynb \
-            --output notebooks/PPI_plot_executed.ipynb \
+            --output PPI_plot_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -483,7 +483,7 @@ rule ppi_cluster1:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/PPI_cluster_1.ipynb \
-            --output notebooks/PPI_cluster_1_executed.ipynb \
+            --output PPI_cluster_1_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -505,7 +505,7 @@ rule ppi_cluster2:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/PPI_cluster_2.ipynb \
-            --output notebooks/PPI_cluster_2_executed.ipynb \
+            --output PPI_cluster_2_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -534,7 +534,7 @@ rule ppi_cluster3:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/PPI_cluster_3.ipynb \
-            --output notebooks/PPI_cluster_3_executed.ipynb \
+            --output PPI_cluster_3_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -563,7 +563,7 @@ rule ppi_cluster4:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/cluster4_enrichment.ipynb \
-            --output notebooks/cluster4_enrichment_executed.ipynb \
+            --output cluster4_enrichment_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -602,7 +602,7 @@ rule hub_gene_directional_verification:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/hub_gene_directional_verification.ipynb \
-            --output notebooks/hub_gene_directional_verification_executed.ipynb \
+            --output hub_gene_directional_verification_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -625,7 +625,7 @@ rule gene_rescued_by_notch:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/gene_rescued_by_notch.ipynb \
-            --output notebooks/gene_rescued_by_notch_executed.ipynb \
+            --output gene_rescued_by_notch_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -646,7 +646,7 @@ rule overlap_assessment:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/Overlap_assessment.ipynb \
-            --output notebooks/Overlap_assessment_executed.ipynb \
+            --output Overlap_assessment_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -667,7 +667,7 @@ rule direction_check_cluster4_5:
     shell:
         """
         jupyter nbconvert --to notebook --execute "notebooks/direction_check_for_cluster_4_and_5.ipynb" \
-            --output "notebooks/direction_check_for_cluster_4_and_5_executed.ipynb" \
+            --output "direction_check_for_cluster_4_and_5_executed.ipynb" \
             > {log} 2>&1
         """
 
@@ -714,7 +714,7 @@ rule full_enrichment_table:
     shell:
         """
         jupyter nbconvert --to notebook --execute "notebooks/full_enrichment_table.ipynb" \
-            --output "notebooks/full_enrichment_table_executed.ipynb" \
+            --output "full_enrichment_table_executed.ipynb" \
             > {log} 2>&1
         """
 
@@ -732,7 +732,7 @@ rule enrichment_cluster1:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/cluster1_enrichment.ipynb \
-            --output notebooks/cluster1_enrichment_executed.ipynb \
+            --output cluster1_enrichment_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -747,7 +747,7 @@ rule enrichment_cluster2:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/cluster2_enrichment.ipynb \
-            --output notebooks/cluster2_enrichment_executed.ipynb \
+            --output cluster2_enrichment_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -762,7 +762,7 @@ rule enrichment_cluster3:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/cluster3_enrichment.ipynb \
-            --output notebooks/cluster3_enrichment_executed.ipynb \
+            --output cluster3_enrichment_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -795,7 +795,7 @@ rule protein_validation_survival:
     shell:
         """
         jupyter nbconvert --to notebook --execute notebooks/protein_validation_survival_plot.ipynb \
-            --output notebooks/protein_validation_survival_plot_executed.ipynb \
+            --output protein_validation_survival_plot_executed.ipynb \
             > {log} 2>&1
         """
 
@@ -819,6 +819,6 @@ rule proportional_hazard_bh:
     shell:
         """
         jupyter nbconvert --to notebook --execute "notebooks/proportional_hazard_assumption_and_multiple_testing_correction.ipynb" \
-            --output "notebooks/proportional_hazard_assumption_and_multiple_testing_correction_executed.ipynb" \
+            --output "proportional_hazard_assumption_and_multiple_testing_correction_executed.ipynb" \
             > {log} 2>&1
         """

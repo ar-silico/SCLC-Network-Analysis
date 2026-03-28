@@ -212,3 +212,5 @@ data/
 results/proteomics/
 logs/
 checkpoints/
+notebooks/*_executed.ipynb
+**/.snakemake_timestamp
