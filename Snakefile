@@ -20,6 +20,21 @@
 # NOTE: GSE40275 and GSE6044 excluded from pipeline.
 # Justification documented in data/EXCLUSIONS.md
 #
+# IMPORTANT — RAW DATA SETUP (required before running pipeline):
+# GEOparse reads local SOFT.gz files directly — download must be done manually.
+# GEOparse can fail to download due to network/temp file issues so all raw
+# files must be pre-placed in data/raw/ before running the pipeline.
+# Download SOFT.gz files from https://www.ncbi.nlm.nih.gov/geo/ and place in data/raw/:
+#   GSE30219_family.soft.gz
+#   GSE149507_family.soft.gz
+#   GSE43346_family.soft.gz
+#   GSE69091_family.soft.gz
+#   GSE60052_family.soft.gz
+#   GSE60052_matrix.tsv.gz  (from GSE60052 supplementary files on GEO)
+# Proteomics files (not on GitHub — from Liu et al. 2024, Cell):
+#   results/proteomics/CPTAC_S1_clinical.xlsb
+#   results/proteomics/CPTAC_S3_tumor_NAT.xlsx
+#
 # To run: snakemake --cores 1
 # Dry run: snakemake --cores 1 --dry-run
 # =============================================================================
@@ -66,8 +81,10 @@ rule all:
 
 # =============================================================================
 # STAGE 1: PREPROCESSING
-# Each notebook: downloads raw data via GEOparse, QC, normalization,
-# gene collapse, NA removal, multi-gene probe removal, expression matrix export
+# Each notebook: reads local SOFT.gz via GEOparse, QC, normalization,
+# gene collapse, NA removal, multi-gene probe removal, expression matrix export.
+# NOTE: All notebooks use os.chdir('..') to set working directory to repo root.
+# NOTE: GEOparse reads local files — see header for required data/raw/ files.
 # =============================================================================
 
 # --- MAIN DEG DATASETS ---
@@ -80,6 +97,7 @@ rule preprocess_GSE30219:
     # ('Small Cell Lung Carcinoma', 'Non tumoral lung').
     # All other subtypes (ADK, Squamous, Basaloid, Carcinoid, LCNE) excluded
     # as non-SCLC, non-normal comparators. See DECISIONS.md.
+    # REQUIRES: data/raw/GSE30219_family.soft.gz
     output:
         matrix   = "data/processed/GSE30219_expression_matrix.csv",
         metadata = "data/metadata/GSE30219_metadata.csv",
@@ -109,6 +127,7 @@ rule preprocess_GSE149507:
     # Platform (GPL) lacks gene symbols — mygene API used to map
     # Entrez IDs to HGNC gene symbols for consistency. See DECISIONS.md.
     # Final outputs are _final suffixed files.
+    # REQUIRES: data/raw/GSE149507_family.soft.gz
     output:
         matrix   = "data/processed/GSE149507_filtered_expression_matrix_final.csv",
         metadata = "data/metadata/GSE149507_filtered_metadata_final.csv",
@@ -136,6 +155,8 @@ rule preprocess_GSE60052:
     #      the smallest dataset; harmonizing prevents RNA-seq-exclusive
     #      genes from inflating the consensus. See DECISIONS.md.
     # DEPENDS ON GSE30219 and GSE149507 preprocessing completing first.
+    # REQUIRES: data/raw/GSE60052_family.soft.gz
+    #           data/raw/GSE60052_matrix.tsv.gz (from GEO supplementary files)
     input:
         gse30219_matrix  = "data/processed/GSE30219_expression_matrix.csv",
         gse149507_matrix = "data/processed/GSE149507_filtered_expression_matrix_final.csv"
@@ -163,6 +184,7 @@ rule preprocess_GSE43346:
     # NOTE: Data provided as raw counts — log2(x+1) applied for
     # consistency with pre-normalized log2 datasets. Single normal
     # sample confirmed as normal lung tissue. See DECISIONS.md.
+    # REQUIRES: data/raw/GSE43346_family.soft.gz
     output:
         matrix   = "data/processed/GSE43346_expression_matrix.csv",
         metadata = "data/metadata/GSE43346_metadata.csv",
@@ -191,6 +213,7 @@ rule preprocess_GSE69091:
     # /// filter intentionally skipped: in this platform /// separates
     # transcript isoforms of the same gene, not distinct gene symbols.
     # Confirmed by inspection of raw annotation. See DECISIONS.md.
+    # REQUIRES: data/raw/GSE69091_family.soft.gz
     output:
         matrix   = "data/processed/GSE69091_expression_matrix.csv",
         metadata = "data/metadata/GSE69091_metadata.csv",
@@ -389,14 +412,21 @@ rule stage3_complete:
 # =============================================================================
 # MANUAL CHECKPOINT 1a: STRING full network + CytoHubba
 # -----------------------------------------------------------------------------
+# IMPORTANT — FILE NAMING CONVENTION:
+# STRING downloads files with default names — rename to match expected names below.
+#
+# Steps:
 # 1. Upload results/enrichment/consensus_genes_for_STRING.txt to STRING
-# 2. Set confidence threshold = 0.700
-# 3. Download full network: edges TSV, nodes TSV, degrees TSV
-# 4. Run CytoHubba on full network (MCC + Betweenness)
-# 5. Export top 10 MCC and top 10 Betweenness as CSV
-# 6. Place files in results/PPI/:
-#    hub_network_edges.tsv, hub_network_degrees.tsv
-#    MCC_top_10.csv, Betweenness_top_10.csv
+#    (https://string-db.org), set confidence threshold = 0.700
+# 2. Download and rename the following files, place in results/PPI/:
+#    STRING download name                  → Required name
+#    string_interactions_short.tsv         → hub_network_edges.tsv
+#    string_node_degrees.tsv               → hub_network_degrees.tsv
+#    string_network_coordinates.tsv        → hub_network_annotations.tsv
+# 3. Run CytoHubba on full network in Cytoscape:
+#    MCC scoring → export top 10    → results/PPI/MCC_top_10.csv
+#    Betweenness → export top 10    → results/PPI/Betweenness_top_10.csv
+#
 # After completing the above, run Stage 4a (ppi_plot rule).
 # =============================================================================
 
@@ -434,15 +464,22 @@ rule ppi_plot:
 # =============================================================================
 # MANUAL CHECKPOINT 1b: STRING MCL clustering
 # -----------------------------------------------------------------------------
-# On the same full network from Checkpoint 1a:
-# 1. Run MCL clustering (inflation = 1.5)
-# 2. Download for each cluster (1-4): edges TSV, nodes TSV,
-#    annotations TSV, gene list TXT
-# 3. Place files in results/PPI/:
-#    cluster{N}_edges.tsv, cluster{N}_annotations.tsv
-#    cluster{N}_degrees.tsv, cluster{N}_genes.txt
-#    cluster5_annotations.tsv (for direction check)
-# Also download: consensus_annotations.tsv (full network annotations)
+# IMPORTANT — FILE NAMING CONVENTION:
+# On the same full network from Checkpoint 1a, run MCL (inflation = 1.5).
+# For each cluster (1-4) and cluster 5 (direction check only):
+# Download and rename the following files, place in results/PPI/:
+#    STRING download name                  → Required name
+#    string_interactions_short.tsv         → cluster{N}_edges.tsv
+#    string_node_degrees.tsv               → cluster{N}_degrees.tsv
+#    string_network_coordinates.tsv        → cluster{N}_annotations.tsv
+#    (gene list from STRING panel)         → cluster{N}_genes.txt
+#    string_network_coordinates.tsv        → cluster5_annotations.tsv
+#    string_network_coordinates.tsv        → consensus_annotations.tsv
+#    (full network coordinates file)
+#
+# Note: Use the "short tabular text output" TSV for edges (one-way A-B,
+# compatible with Cytoscape). Do NOT use the full tabular output (reciprocal).
+#
 # After completing the above, proceed to Checkpoint 2.
 # =============================================================================
 
@@ -450,12 +487,16 @@ rule ppi_plot:
 # =============================================================================
 # MANUAL CHECKPOINT 2: Cytoscape + CytoHubba (clusters 1, 2, 3 only)
 # -----------------------------------------------------------------------------
-# For clusters 1, 2, 3 (cluster 4 handled automatically by ppi_cluster4):
+# IMPORTANT — FILE NAMING CONVENTION:
+# Cluster 4 handled automatically — no CytoHubba needed.
+# For clusters 1, 2, 3:
 # 1. Load cluster{N}_edges.tsv into Cytoscape
-# 2. Run CytoHubba with MCC scoring → export top 10 as CSV
-# 3. Run CytoHubba with Betweenness scoring → export top 10 as CSV
-# 4. Place files in results/PPI/:
-#    cluster{N}_MCC_top10.csv, cluster{N}_betweenness_top10.csv
+# 2. Run CytoHubba MCC scoring → export top 10:
+#    CytoHubba exports as CytoHubba_Result.csv by default
+#    Rename to → results/PPI/cluster{N}_MCC_top10.csv
+# 3. Run CytoHubba Betweenness scoring → export top 10:
+#    Rename to → results/PPI/cluster{N}_betweenness_top10.csv
+#
 # After completing the above, run Stage 4b rules.
 # =============================================================================
 
@@ -466,8 +507,7 @@ rule ppi_plot:
 
 rule ppi_cluster1:
     # NOTE: Hub genes identified via MCC + Betweenness from CytoHubba.
-    # STRING annotation cross-reference. Currently hardcoded as
-    # Hub genes identified via annotation TSV lookup
+    # ENSP IDs resolved via dynamic annotation TSV lookup from STRING.
     # See DECISIONS.md.
     input:
         annotations = "results/PPI/cluster1_annotations.tsv",
@@ -489,7 +529,7 @@ rule ppi_cluster1:
 
 rule ppi_cluster2:
     # NOTE: Hub genes identified via MCC + Betweenness from CytoHubba.
-    # STRING annotation cross-reference. Currently hardcoded as
+    # ENSP IDs resolved via dynamic annotation TSV lookup from STRING.
     # See DECISIONS.md.
     input:
         annotations = "results/PPI/cluster2_annotations.tsv",
@@ -511,7 +551,7 @@ rule ppi_cluster2:
 
 rule ppi_cluster3:
     # NOTE: Hub genes identified via MCC + Betweenness from CytoHubba.
-    # STRING annotation cross-reference (same approach as clusters 1,2).
+    # ENSP IDs resolved via dynamic annotation TSV lookup from STRING.
     # Cross-reference logic for all three clusters documented here.
     # Produces two figures: method-colored and direction-colored network.
     # Direction-colored figure shows EZH2/HDAC2 as upregulated epigenetic
@@ -542,10 +582,12 @@ rule ppi_cluster4:
     # NOTE: Cluster 4 (37 nodes) — too small for CytoHubba.
     # Hub genes selected as top 5 by STRING node degree.
     # Degree centrality used as proxy for topological importance.
-    # This notebook also handles enrichment visualization for cluster 4
-    # and BH-filtered enrichment CSV output.
+    # This notebook handles PPI network construction, hub selection,
+    # enrichment visualization, and BH-filtered enrichment CSV output
+    # all in one notebook — by design, as cluster 4 was added after
+    # clusters 1-3 were structured separately. See DECISIONS.md.
     # Enrichment figure shows top 15 by raw p-value; saved CSV uses
-    # BH < 0.05 filter. See DECISIONS.md.
+    # BH < 0.05 filter.
     # DEPENDS ON MANUAL CHECKPOINT 3 (DAVID enrichment CSV for cluster 4).
     input:
         annotations = "results/PPI/cluster4_annotations.tsv",
@@ -591,11 +633,11 @@ rule hub_gene_directional_verification:
     # top 10 for clusters 1-3, top 5 by degree for cluster 4.
     # All 50 hub genes confirmed in consensus.
     # Per-cluster hub gene list files saved to results/DEG/hub_gene_lists/
-    # use by all downstream notebooks. See DECISIONS.md.
+    # for use by all downstream notebooks. See DECISIONS.md.
     input:
         consensus = "results/DEG/consensus_DEGs.csv"
     output:
-        hub_lists = directory("results/DEG/hub_gene_lists"),
+        hub_lists    = directory("results/DEG/hub_gene_lists"),
         verification = "results/DEG/hub_gene_directional_verification.csv"
     log:
         "logs/hub_gene_directional_verification.log"
@@ -610,15 +652,17 @@ rule gene_rescued_by_notch:
     # NOTE: Cross-references full 50 hub genes across all four clusters
     # against Notch-rescued and Notch-suppressed consensus DEGs.
     # Hub gene lists loaded dynamically from hub_gene_lists directory.
-    # Result: CD44, CCND1, KDR rescued by Notch activation (initial analysis —
-    # to be updated after Notch rescue reanalysis with full 50 hub genes).
-    # See DECISIONS.md Section 11.
+    # Result: CD44, CCND1, ITGA8 rescued by Notch activation.
+    # No hub genes suppressed by Notch.
+    # ITGA8 is a Cluster 4 ECM gene — connects Notch activation to
+    # ECM remodeling. KDR was present in initial whole-network analysis
+    # but absent from full 50-hub analysis. See DECISIONS.md Section 11.
     input:
         rescued    = "results/DEG/notch_rescued_consensus_down.csv",
         suppressed = "results/DEG/notch_suppressed_consensus_up.csv",
         hub_lists  = "results/DEG/hub_gene_lists"
     output:
-        rescued_hubs = "results/DEG/notch_rescued_hub_genes.csv",
+        rescued_hubs    = "results/DEG/notch_rescued_hub_genes.csv",
         suppressed_hubs = "results/DEG/notch_suppressed_hub_genes.csv"
     log:
         "logs/gene_rescued_by_notch.log"
@@ -675,13 +719,19 @@ rule direction_check_cluster4_5:
 # =============================================================================
 # MANUAL CHECKPOINT 3: DAVID functional enrichment
 # -----------------------------------------------------------------------------
+# IMPORTANT — FILE NAMING CONVENTION:
 # For each cluster (1-4):
 # 1. Upload results/enrichment/cluster{N}_genes.txt to DAVID
-# 2. Run functional annotation
-# 3. Download enrichment results as CSV
-# 4. Place files in results/enrichment/:
-#    cluster{N}_enrichment.csv
-# Note: cluster4_genes.txt is produced by ppi_cluster4 rule above.
+#    (https://david.ncifcrf.gov)
+# 2. Run functional annotation with default settings
+# 3. Download results as CSV and rename/place in results/enrichment/:
+#    DAVID default export name        → Required name
+#    (Chart_XXXX.txt or .csv)         → cluster{N}_enrichment.csv
+#
+# Note: cluster4_genes.txt is produced automatically by ppi_cluster4 rule.
+# cluster1_genes.txt, cluster2_genes.txt, cluster3_genes.txt are produced
+# by their respective PPI cluster notebooks.
+#
 # After completing the above, continue pipeline from Stage 6.
 # =============================================================================
 
@@ -780,6 +830,9 @@ rule protein_validation_survival:
     # S4 investigated and documented as non-applicable by design —
     # Liu et al. S4 uses survival-first concordance pipeline, orthogonal
     # to our network topology approach.
+    # REQUIRES: results/proteomics/CPTAC_S3_tumor_NAT.xlsx
+    #           results/proteomics/CPTAC_S1_clinical.xlsb
+    # (Files from Liu et al. 2024, Cell — not on GitHub)
     input:
         hub_lists = "results/DEG/hub_gene_lists",
         s3        = "results/proteomics/CPTAC_S3_tumor_NAT.xlsx",
@@ -804,9 +857,9 @@ rule proportional_hazard_bh:
     # (p<0.10 from initial KM screen) — not all 27 validated genes.
     # Schoenfeld residuals confirm PH assumption met for all 11 genes
     # (all p>0.05). Three genes survive BH correction: CASP1, IL18, TLR2.
-    # WARNING: Duplicates data loading from survival notebook —
-    # consider merging or saving intermediate merged_df in cleanup.
-    # See DECISIONS.md.
+    # Duplicates data loading from survival notebook by design —
+    # keeps notebooks self-contained for independent execution.
+    # REQUIRES: results/proteomics/CPTAC_S1_clinical.xlsb
     input:
         hub_lists = "results/DEG/hub_gene_lists",
         s1 = "results/proteomics/CPTAC_S1_clinical.xlsb",

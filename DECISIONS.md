@@ -3,7 +3,7 @@
 # Every major methodological choice is documented here with justification.
 # This file is the authoritative reference for manuscript methods and
 # reviewer responses.
-# Last updated: draft 2 — incorporates reviewer-anticipation review
+# Last updated: draft 3 — post pipeline run, Notch rescue reanalysis complete
 
 ---
 
@@ -63,6 +63,9 @@ This microarray uses `gene_assignment` field with `//` delimiter — gene symbol
 ### Duplicate Gene Collapse
 All datasets: duplicate probe-to-gene mappings collapsed by mean expression. Mean chosen over max to avoid upward bias from outlier probes.
 
+### GEOparse Local File Loading
+All preprocessing notebooks load GEO data from local SOFT.gz files via `GEOparse.get_GEO(filepath=...)` rather than downloading at runtime. This avoids GEOparse network and temp file failures which can occur due to network instability or GEO server timeouts. All raw files must be pre-placed in `data/raw/` before running the pipeline. See Section 10 for required filenames.
+
 ---
 
 ## 3. DIFFERENTIAL EXPRESSION ANALYSIS
@@ -101,6 +104,24 @@ GSE43346 (23 SCLC vs 1 Normal) cannot yield reliable p-values due to single norm
 ### STRING Confidence Threshold
 Confidence threshold = 0.700. This is STRING's recommended "high confidence" threshold, balancing network completeness with interaction reliability.
 
+### STRING File Downloads and Naming Convention
+STRING downloads files with default names that must be renamed before placing in `results/PPI/`. The "short tabular text output" TSV (one-way edges A-B, compatible with Cytoscape) was used for all edge files — not the full tabular output (reciprocal edges A-B and B-A).
+
+For the full network (Checkpoint 1a):
+| STRING download name | Required filename |
+|---|---|
+| `string_interactions_short.tsv` | `hub_network_edges.tsv` |
+| `string_node_degrees.tsv` | `hub_network_degrees.tsv` |
+| `string_network_coordinates.tsv` | `hub_network_annotations.tsv` |
+
+For each cluster (Checkpoint 1b, clusters 1–4 and cluster 5 for direction check):
+| STRING download name | Required filename |
+|---|---|
+| `string_interactions_short.tsv` | `cluster{N}_edges.tsv` |
+| `string_node_degrees.tsv` | `cluster{N}_degrees.tsv` |
+| `string_network_coordinates.tsv` | `cluster{N}_annotations.tsv` |
+| `string_network_coordinates.tsv` (full network) | `consensus_annotations.tsv` |
+
 ### Initial Hub Network Analysis
 A full consensus network was first built and hub genes identified via CytoHubba (MCC + Betweenness). This revealed upregulation dominance among hub genes — discordant with the downregulation dominance observed in the raw DEG data. This discordance motivated the MCL clustering approach and is itself a key finding: conventional network hub analysis is topologically biased toward proliferation genes, numerically masking biologically significant suppressed programs. The initial hub network figure is retained in the paper as methodological justification showing the analytical decision was data-driven and to illustrate this topological bias explicitly.
 
@@ -116,12 +137,15 @@ Hub genes identified via CytoHubba using MCC and Betweenness centrality scoring.
 ### Hub Gene Selection (Cluster 4)
 Cluster 4 contains only 37 nodes — below the minimum network density required for reliable CytoHubba scoring. The CytoHubba step was therefore foregone entirely for this cluster. Hub genes selected as top 5 by STRING node degree. Degree centrality used as a direct proxy for topological importance. Top 5 chosen to maintain proportionality with the effective hub gene yield from clusters 1–3 given the cluster's smaller size.
 
+### Cluster 4 Notebook Structure
+Cluster 4 PPI network construction, hub gene selection, enrichment visualization, and BH-filtered enrichment CSV output are all handled in a single notebook (`cluster4_enrichment.ipynb`). This is by design — cluster 4 was added after clusters 1–3 were already structured separately. The BH filtering and filtered CSV save are contained within this notebook rather than in `full_enrichment_table.ipynb`, which handles clusters 1–3.
+
 ### Unresolved ENSP IDs
 One ENSP ID per cluster was not resolved by mygene API query:
 - Cluster 1: `9606.ENSP00000481380` → CCNA2
 - Cluster 2: `9606.ENSP00000498321` → MYD88
 - Cluster 3: `9606.ENSP00000471239` → ZFP36
-- All resolved via cross-reference with STRING annotation TSV files. Resolution is coded, documented, and reproducible.
+- All resolved via cross-reference with STRING annotation TSV files (`string_network_coordinates.tsv`). Resolution is coded, documented, and reproducible.
 
 ---
 
@@ -137,7 +161,7 @@ Fisher's exact test used to confirm Notch rescue and suppression overlaps are no
 - Universe = 15,504 genes (consensus gene pool)
 
 ### Rescued Hub Genes
-CD44, CCND1, KDR identified as hub genes rescued by Notch activation in initial analysis using whole-network hub list. Results to be updated after dry run — reanalysis now uses full 50 hub genes across all four clusters.
+Cross-referencing the full 50 hub genes across all four clusters against Notch-rescued consensus DEGs identified: **CD44, CCND1, ITGA8** rescued by Notch activation. No hub genes were suppressed by Notch activation. ITGA8 is a Cluster 4 ECM hub gene — its rescue by Notch connects Notch signaling to ECM remodeling in SCLC. KDR was identified in the initial whole-network hub analysis but is absent from the full 50-hub analysis, as it was not among the final MCC+Betweenness selected hub genes.
 
 ---
 
@@ -152,6 +176,9 @@ Benjamini-Hochberg correction applied to DAVID enrichment results. BH < 0.05 use
 ### Enrichment Figure vs Saved CSV
 Enrichment bar charts show top 15 terms sorted by raw p-value for visual clarity. Saved filtered CSVs apply BH < 0.05 filter — these are the values reported in the manuscript.
 
+### DAVID File Naming Convention
+DAVID exports results with a default filename (typically `Chart_XXXX.txt` or `.csv`). This must be renamed to `cluster{N}_enrichment.csv` and placed in `results/enrichment/` before running Stage 6 of the pipeline.
+
 ---
 
 ## 8. PROTEOMICS VALIDATION
@@ -165,7 +192,7 @@ Proteomics validation applied as a two-step filter:
 2. **Directionality**: For detected proteins, does the protein-level fold change (tumor vs NAT) show directional concordance with the transcriptomic dysregulation? Concordance confirms the transcriptional signal propagates to the protein level.
 
 ### Hub Gene Attrition (50 → 27)
-Of 50 hub genes taken to proteomics validation, 27 were detected and directionally concordant in S3A. The remaining 23 were absent from the mass spectrometry dataset — not detected, not discordant. This distinction is important: absence reflects the experimental sensitivity of the proteomics assay, not a failure of the transcriptomic signal.
+Of 50 hub genes taken to proteomics validation, 27 were detected and directionally concordant in S3A. The remaining 23 were absent from the mass spectrometry dataset — not detected, not discordant. This distinction is important: absence reflects the experimental sensitivity of the proteomics assay, not a failure of the transcriptomic signal. 
 
 ### S4 Non-Applicability
 Liu et al. Supplementary Table S4 was assessed and documented as non-applicable by design. S4A uses a survival-first concordance-filtered pipeline orthogonal to our network topology approach. S4C/S4E are clinical covariate tables for Liu et al.'s own markers only. Not a limitation — different analytical frameworks answer different questions.
@@ -205,25 +232,46 @@ Schoenfeld residuals test applied to all 11 genes. All p > 0.05 — PH assumptio
 Claude (Anthropic) used for code syntax assistance and Snakemake pipeline construction. To be disclosed in manuscript acknowledgments.
 
 ### Proteomics Raw Data
-Raw proteomics files (CPTAC_S1_clinical.xlsb, CPTAC_S3_tumor_NAT.xlsx) not pushed to GitHub — files belong to Liu et al. 2024 and are available from the original publication.
+Raw proteomics files (CPTAC_S1_clinical.xlsb, CPTAC_S3_tumor_NAT.xlsx) not pushed to GitHub — files belong to Liu et al. 2024 and are available from the original publication. Place in `results/proteomics/` before running Stage 7.
+
+### Required Raw Data Files
+The following files must be manually obtained and placed in the specified directories before running the pipeline. None of these are pushed to GitHub due to size or third-party data constraints.
+
+**GEO raw files** — place in `data/raw/`:
+| File | Source |
+|---|---|
+| `GSE30219_family.soft.gz` | https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE30219 |
+| `GSE149507_family.soft.gz` | https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149507 |
+| `GSE43346_family.soft.gz` | https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE43346 |
+| `GSE69091_family.soft.gz` | https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69091 |
+| `GSE60052_family.soft.gz` | https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE60052 |
+| `GSE60052_matrix.tsv.gz` | GSE60052 supplementary files on GEO |
+
+**Proteomics files** — place in `results/proteomics/`:
+| File | Source |
+|---|---|
+| `CPTAC_S1_clinical.xlsb` | Liu et al. 2024, Cell, Supplementary Table S1 |
+| `CPTAC_S3_tumor_NAT.xlsx` | Liu et al. 2024, Cell, Supplementary Table S3A |
+
+**STRING and Cytoscape files** — place in `results/PPI/` (see Section 5 for naming convention):
+- Full network: `hub_network_edges.tsv`, `hub_network_degrees.tsv`, `hub_network_annotations.tsv`
+- Full network CytoHubba: `MCC_top_10.csv`, `Betweenness_top_10.csv`
+- Per cluster (1–4): `cluster{N}_edges.tsv`, `cluster{N}_degrees.tsv`, `cluster{N}_annotations.tsv`
+- Per cluster CytoHubba (clusters 1–3 only): `cluster{N}_MCC_top10.csv`, `cluster{N}_betweenness_top10.csv`
+- Supplementary: `cluster5_annotations.tsv`, `consensus_annotations.tsv`
+
+**DAVID enrichment files** — place in `results/enrichment/`:
+- `cluster1_enrichment.csv`, `cluster2_enrichment.csv`, `cluster3_enrichment.csv`, `cluster4_enrichment.csv`
 
 ### Manual Steps
 The following steps require manual execution and cannot be automated in the Snakemake pipeline:
-1. **STRING (Checkpoint 1a)**: Upload consensus DEGs, set confidence=0.700, run full network analysis, download hub network edges/nodes/degrees and CytoHubba top 10 MCC and Betweenness CSVs.
-2. **STRING (Checkpoint 1b)**: Run MCL clustering (inflation=1.5) on same full network, download cluster TSVs/edges/nodes/annotations/gene lists for clusters 1–5 and consensus annotations.
-3. **Cytoscape + CytoHubba (Checkpoint 2)**: Load cluster{N}_edges.tsv for clusters 1–3, run MCC scoring (top 10) and Betweenness scoring (top 10), export CSVs. Cluster 4 handled automatically by pipeline.
-4. **DAVID (Checkpoint 3)**: Upload per-cluster gene lists for clusters 1–4, run functional annotation, download enrichment CSVs.
+1. **STRING (Checkpoint 1a)**: Upload consensus DEGs to STRING (confidence=0.700), run full network analysis, download and rename files per naming convention in Section 5. Run CytoHubba MCC and Betweenness scoring in Cytoscape, export top 10 each.
+2. **STRING (Checkpoint 1b)**: Run MCL clustering (inflation=1.5) on same full network, download and rename cluster files per naming convention in Section 5 for clusters 1–5 and consensus.
+3. **Cytoscape + CytoHubba (Checkpoint 2)**: Load `cluster{N}_edges.tsv` for clusters 1–3, run MCC scoring (top 10) and Betweenness scoring (top 10), rename exports per naming convention. Cluster 4 handled automatically by pipeline.
+4. **DAVID (Checkpoint 3)**: Upload `cluster{N}_genes.txt` for clusters 1–4 to DAVID, run functional annotation, rename exports to `cluster{N}_enrichment.csv`.
 
-## 11. POST-CLEANUP FLAGS
-
-### Notch Rescue Reanalysis
-`gene_rescued_by_notch.ipynb` currently uses the whole-network hub gene list 
-from the initial full network analysis. Should be rerun using the full 50 hub 
-genes across all four clusters from `hub_gene_directional_verification.ipynb`. 
-Update Snakefile inputs and DECISIONS.md rescue results accordingly once rerun 
-is complete.
-
-### ENSP Dynamic Lookup for Full Network
-`PPI_plot.ipynb` depends on `hub_network_annotations.tsv` which must be 
-downloaded manually from STRING (full hub network, confidence=0.700). 
-File to be saved as `results/PPI/hub_network_annotations.tsv` before dry run.
+### Pipeline Execution Notes
+- All notebooks use `os.chdir('..')` in the first cell to set the working directory to the repo root, enabling correct relative path resolution when executed via Snakemake's `nbconvert`.
+- Snakemake must be run from the repository root directory.
+- Executed notebooks (`*_executed.ipynb`) are excluded from GitHub via `.gitignore` — they are generated locally during pipeline runs.
+- The `data/`, `logs/`, `checkpoints/`, and `results/proteomics/` directories are excluded from GitHub. All other `results/` subdirectories containing non-proprietary outputs are tracked.
