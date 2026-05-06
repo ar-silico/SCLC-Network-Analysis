@@ -52,7 +52,7 @@ GSE43346 provided as raw counts — not pre-normalized. log2(x+1) transformation
 Single normal sample confirmed as normal lung tissue. Sample classification by 'Lung' title string is unambiguous given only one normal sample exists in this dataset.
 
 ### GSE60052 Low-Expression Filter
-RNA-seq is prone to technical zeros for lowly expressed genes. Genes expressed (>0) in fewer than 10% of samples were removed. Rationale: genes expressed in ≥10% of samples are unlikely to be universally absent — zeros in <10% of samples are more likely technical artifacts than true absence of expression.
+Genes expressed (>0) in fewer than 10% of samples were removed. Rationale: GSE60052 is the largest dataset (n=86); at this sample size, genes detected in fewer than 10% of samples (fewer than 9 samples) more likely reflect stochastic sequencing variation than true absence of expression. This filter was not applied to the microarray datasets — their smaller sample sizes make the 10% threshold an unreliable criterion for distinguishing technical noise from true low expression.
 
 ### GSE60052 Microarray Union Filter
 RNA-seq matrix filtered to the union of GSE30219 and GSE149507 gene spaces. Rationale: consensus DEGs are bounded by the smallest dataset — harmonizing the RNA-seq set to the microarray gene universe prevents RNA-seq-exclusive genes from inflating the consensus. This ensures all three datasets contribute comparably to the consensus.
@@ -156,9 +156,9 @@ GSE69091 uses mouse genes. mygene API used to map mouse gene symbols to human or
 
 ### Rescue Overlap Significance
 Fisher's exact test used to confirm Notch rescue and suppression overlaps are non-random:
-- Consensus DOWN ∩ Notch UP: OR = 3.874, p ≈ 0 (n=48 genes rescued)
-- Consensus UP ∩ Notch DOWN: OR = 2.789, p = 0.017 (n=7 genes suppressed)
-- Universe = 15,504 genes (consensus gene pool)
+- Consensus DOWN ∩ Notch UP: OR = 3.884, p ≈ 0 (n=48 genes rescued)
+- Consensus UP ∩ Notch DOWN: OR = 2.790, p = 0.017 (n=7 genes suppressed)
+- Universe = 15,481 genes (consensus gene pool)
 
 ### Rescued Hub Genes
 Cross-referencing the full 50 hub genes across all four clusters against Notch-rescued consensus DEGs identified: **CD44, CCND1, ITGA8** rescued by Notch activation. No hub genes were suppressed by Notch activation. ITGA8 is a Cluster 4 ECM hub gene — its rescue by Notch connects Notch signaling to ECM remodeling in SCLC. KDR was identified in the initial whole-network hub analysis but is absent from the full 50-hub analysis, as it was not among the final MCC+Betweenness selected hub genes.
@@ -275,3 +275,13 @@ The following steps require manual execution and cannot be automated in the Snak
 - Snakemake must be run from the repository root directory.
 - Executed notebooks (`*_executed.ipynb`) are excluded from GitHub via `.gitignore` — they are generated locally during pipeline runs.
 - The `data/`, `logs/`, `checkpoints/`, and `results/proteomics/` directories are excluded from GitHub. All other `results/` subdirectories containing non-proprietary outputs are tracked.
+
+### Authoritative Outputs:
+
+The executed notebooks (*_executed.ipynb) are the authoritative version of all analytical results. Where discrepancies exist between original and executed notebooks, the executed file takes precedence. All reported numbers in the manuscript are traceable to executed notebook outputs.
+
+### Discussion Flags:
+
+Discussion Flags (internal — remove before publication)
+Notch asymmetry: The asymmetry between Notch rescue (OR=3.884, n=48) and suppression (OR=2.790, n=7) independently corroborates downregulation dominance. Convergent evidence across functional mouse model and three-platform transcriptomic consensus. State in Discussion when addressing Notch validation results.
+Inter-cluster limitation: Hub gene identification was performed within cluster boundaries. Inter-cluster connector genes — nodes most topologically important across cluster boundaries — were not captured. Known constraint of the cluster-resolved approach; state as a limitation in Discussion. Future direction: inter-cluster hub analysis to be addressed in subsequent work.

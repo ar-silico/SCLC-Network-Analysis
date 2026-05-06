@@ -376,14 +376,17 @@ rule consensus_degs:
     # Mouse-to-human ortholog mapping via mygene for Notch validation.
     # Fisher's exact test confirms rescue/suppression overlaps are
     # non-random (OR=3.874 p~0 for rescue; OR=2.789 p=0.017 suppression).
-    # Gene universe = 15,504 (consensus gene pool across all platforms).
+    # Gene universe = 15,481 (computed dynamically).
     input:
         deg_30219  = "results/DEG/GSE30219_DEG_results_strict.csv",
         deg_149507 = "results/DEG/GSE149507_DEG_results_strict.csv",
         deg_60052  = "results/DEG/GSE60052_DEG_results_strict.csv",
         deg_69091  = "results/DEG/GSE69091_DEG_results_strict.csv",
         gse43346   = "data/processed/GSE43346_expression_matrix.csv",
-        meta_43346 = "data/metadata/GSE43346_metadata.csv"
+        meta_43346 = "data/metadata/GSE43346_metadata.csv",
+        mat_30219  = "data/processed/GSE30219_expression_matrix.csv",
+        mat_149507 = "data/processed/GSE149507_filtered_expression_matrix_final.csv",
+        mat_60052  = "data/processed/GSE60052_expression_matrix.csv"
     output:
         consensus  = "results/DEG/consensus_DEGs.csv",
         rescued    = "results/DEG/notch_rescued_consensus_down.csv",
