@@ -3,7 +3,7 @@
 # Every major methodological choice is documented here with justification.
 # This file is the authoritative reference for manuscript methods and
 # reviewer responses.
-# Last updated: draft 3 — post pipeline run, Notch rescue reanalysis complete
+# Last updated: draft 4 — code comments cleanup, color correction of cluster 4, DECISIONS.md updates
 
 ---
 
@@ -71,12 +71,12 @@ All preprocessing notebooks load GEO data from local SOFT.gz files via `GEOparse
 ## 3. DIFFERENTIAL EXPRESSION ANALYSIS
 
 ### Statistical Test Selection
-- **GSE30219, GSE60052**: Mann-Whitney U test (two-sided, unpaired). Non-parametric test chosen because normality of gene expression distributions cannot be assumed, particularly with unequal and relatively small group sizes.
+- **GSE30219, GSE60052**: Mann-Whitney U test (two-sided, unpaired). Non-parametric test chosen because normality of gene expression distributions cannot be assumed, particularly with unequal and relatively small group sizes. Additionally, in diseases such as SCLC where the transcriptomic landscape is heavily modified no prior distributive assumption can be made.
 - **GSE149507**: Wilcoxon signed-rank test (paired). Paired test used to account for inter-patient variability and increase statistical power. Appropriate because matched SCLC/Normal samples come from the same patients.
 - **GSE69091**: limma with empirical Bayes shrinkage (via rpy2). 3v3 sample size too small for reliable non-parametric testing. limma's eBayes shrinkage is specifically designed for small-sample microarray data and borrows information across genes to stabilize variance estimates. eBayes proportion parameter = 0.01 (default value, stated explicitly for transparency).
 
 ### Multiple Testing Correction
-Benjamini-Hochberg (BH) FDR correction applied to all datasets. BH chosen over Bonferroni because Bonferroni is overly conservative for large-scale genomic data with correlated tests. BH < 0.05 is the standard threshold for genomic analyses.
+Benjamini-Hochberg (BH) FDR correction applied to all datasets. BH controls the false discovery rate and is the standard correction method for large-scale genomic analyses with correlated tests. BH < 0.05 used as significance threshold.
 
 ### DEG Threshold
 Strict threshold: padj < 0.05 AND |log2FC| ≥ 1. The FC filter removes genes that are statistically significant but biologically trivial (small magnitude changes). |log2FC| ≥ 1 represents a twofold change, a standard cutoff in microarray literature.
@@ -92,7 +92,8 @@ A stats-only version (padj < 0.05, no FC filter) was also saved for each dataset
 Consensus DEGs defined as genes meeting the strict threshold (padj < 0.05, |log2FC| ≥ 1) in the same direction across all three primary datasets simultaneously. This is the most conservative approach — only genes with robust, cross-platform, directionally consistent signals are retained.
 
 ### Gene Universe
-The three-way overlap of all three expression matrices = 15,504 genes. This represents the testable gene space common to all three platforms and was used as the universe for Fisher's exact test.
+The three-way overlap of all three expression matrices = 15,477 genes. This represents the testable gene space common to all three platforms and was used as the universe for Fisher's exact test.
+The gene universe size shows minor variability across runs (observed range: 15,477–15,504) due to mygene API mapping updates and ambiguous symbol resolution between runs. The executed notebooks from the final clean run (15,477 genes) are the authoritative reference for all reported numbers. On all successive runs none of the hub-genes were excluded from the gene universe.
 
 ### GSE43346 Directional Validation
 GSE43346 (23 SCLC vs 1 Normal) cannot yield reliable p-values due to single normal sample. Used solely for directional concordance validation. Fold change computed as mean of SCLC samples minus single normal sample (already log2 scale). Result: 99.0% concordance for downregulated genes, 98.4% for upregulated genes — confirms consensus directionality in an independent dataset.
@@ -112,7 +113,7 @@ For the full network (Checkpoint 1a):
 |---|---|
 | `string_interactions_short.tsv` | `hub_network_edges.tsv` |
 | `string_node_degrees.tsv` | `hub_network_degrees.tsv` |
-| `string_network_coordinates.tsv` | `hub_network_annotations.tsv` |
+| `string_network_coordinates.tsv` | `consensus_annotations.tsv` |
 
 For each cluster (Checkpoint 1b, clusters 1–4 and cluster 5 for direction check):
 | STRING download name | Required filename |
@@ -123,7 +124,8 @@ For each cluster (Checkpoint 1b, clusters 1–4 and cluster 5 for direction chec
 | `string_network_coordinates.tsv` (full network) | `consensus_annotations.tsv` |
 
 ### Initial Hub Network Analysis
-A full consensus network was first built and hub genes identified via CytoHubba (MCC + Betweenness). This revealed upregulation dominance among hub genes — discordant with the downregulation dominance observed in the raw DEG data. This discordance motivated the MCL clustering approach and is itself a key finding: conventional network hub analysis is topologically biased toward proliferation genes, numerically masking biologically significant suppressed programs. The initial hub network figure is retained in the paper as methodological justification showing the analytical decision was data-driven and to illustrate this topological bias explicitly.
+A full consensus network was first built and hub genes identified via CytoHubba (MCC + Betweenness). This revealed upregulation dominance among hub genes — discordant with the downregulation dominance observed in the raw DEG data. Additionally, reducing 1,285 consensus DEGs to 20 hub genes discards the vast majority of the signal present in the dataset. It is unlikely that the remaining genes contribute to only one central biological program hinted by the whole-network hub-genes.
+These observations motivated the MCL clustering approach, which is itself a key finding: conventional network hub analysis is topologically biased toward proliferation genes, numerically masking biologically significant suppressed programs. The initial hub network figure is retained in the paper as methodological justification showing the analytical decision was data-driven and to illustrate this topological bias explicitly.
 
 ### MCL Clustering
 MCL clustering run at inflation = 1.5. Inflation = 1.2 produced overly homogeneous clusters; inflation = 3.0 produced 250+ fragments. Inflation = 1.5 gave biologically interpretable, stable clusters and was selected as optimal.
@@ -135,7 +137,7 @@ Top 4 clusters analyzed. Clusters 5+ show the same suppression-dominant pattern 
 Hub genes identified via CytoHubba using MCC and Betweenness centrality scoring. Final hub gene list = union of top 10 by MCC and top 10 by Betweenness per cluster, deduplicated.
 
 ### Hub Gene Selection (Cluster 4)
-Cluster 4 contains only 37 nodes — below the minimum network density required for reliable CytoHubba scoring. The CytoHubba step was therefore foregone entirely for this cluster. Hub genes selected as top 5 by STRING node degree. Degree centrality used as a direct proxy for topological importance. Top 5 chosen to maintain proportionality with the effective hub gene yield from clusters 1–3 given the cluster's smaller size.
+Cluster 4 contains only 37 nodes — small enough that hub genes are directly identifiable by visual inspection of the network. The CytoHubba step was therefore foregone entirely for this cluster. Hub genes selected as top 5 by STRING node degree as a direct proxy for topological importance. Top 5 chosen to maintain proportionality with the effective hub gene yield from clusters 1–3 given the cluster's smaller size.
 
 ### Cluster 4 Notebook Structure
 Cluster 4 PPI network construction, hub gene selection, enrichment visualization, and BH-filtered enrichment CSV output are all handled in a single notebook (`cluster4_enrichment.ipynb`). This is by design — cluster 4 was added after clusters 1–3 were already structured separately. The BH filtering and filtered CSV save are contained within this notebook rather than in `full_enrichment_table.ipynb`, which handles clusters 1–3.
@@ -158,7 +160,7 @@ GSE69091 uses mouse genes. mygene API used to map mouse gene symbols to human or
 Fisher's exact test used to confirm Notch rescue and suppression overlaps are non-random:
 - Consensus DOWN ∩ Notch UP: OR = 3.884, p ≈ 0 (n=48 genes rescued)
 - Consensus UP ∩ Notch DOWN: OR = 2.790, p = 0.017 (n=7 genes suppressed)
-- Universe = 15,481 genes (consensus gene pool)
+- Universe = 15,477 genes (consensus gene pool)
 
 ### Rescued Hub Genes
 Cross-referencing the full 50 hub genes across all four clusters against Notch-rescued consensus DEGs identified: **CD44, CCND1, ITGA8** rescued by Notch activation. No hub genes were suppressed by Notch activation. CCND1 from Cluster 3, CD44 and ITGA8 from Cluster 4 — thier rescue by Notch connects Notch signaling to ECM remodeling in SCLC. KDR was identified in the initial whole-network hub analysis but is absent from the full 50-hub analysis, as it was not among the final MCC+Betweenness selected hub genes.
@@ -168,7 +170,7 @@ Cross-referencing the full 50 hub genes across all four clusters against Notch-r
 ## 7. FUNCTIONAL ENRICHMENT
 
 ### DAVID Enrichment Categories
-Four categories retained: GOTERM_BP_DIRECT, GOTERM_CC_DIRECT, GOTERM_MF_DIRECT, KEGG_PATHWAY. GO Direct terms provide direct annotation without inferred parent terms, giving cleaner and more interpretable results than indirect GO terms. KEGG captures pathway-level context.
+Four categories retained: GOTERM_BP_DIRECT, GOTERM_CC_DIRECT, GOTERM_MF_DIRECT, KEGG_PATHWAY. GO Direct terms provides direct annotation. KEGG captures pathway-level context.
 
 ### BH Correction for Enrichment
 Benjamini-Hochberg correction applied to DAVID enrichment results. BH < 0.05 used as significance threshold — standard for functional enrichment analysis.
@@ -188,7 +190,7 @@ Liu et al. 2024 (Cell) CPTAC proteogenomics dataset, Supplementary Table S3A. 11
 
 ### Two-Step Validation Logic
 Proteomics validation applied as a two-step filter:
-1. **Presence**: Is the protein detected in the CPTAC mass spectrometry dataset at all? Not all transcripts are translated at detectable levels — mass spectrometry capture is experimentally bounded. Hub genes absent from the proteomics dataset are classified as "not detected", not discordant. Absence does not contradict transcriptomic findings.
+1. **Presence**: Is the protein detected in the CPTAC mass spectrometry dataset at all? Not all transcripts are translated at detectable levels — mass spectrometry capture is experimentally bounded. The CPTAC dataset covers 9,559 proteins after quality filtering, with proteins below the detection sensitivity threshold excluded. Hub genes absent from the proteomics dataset are classified as "not detected", not discordant. Absence reflects the technical sensitivity limits of the mass spectrometry assay, not a failure of the transcriptomic signal.
 2. **Directionality**: For detected proteins, does the protein-level fold change (tumor vs NAT) show directional concordance with the transcriptomic dysregulation? Concordance confirms the transcriptional signal propagates to the protein level.
 
 ### Hub Gene Attrition (50 → 27)
@@ -229,7 +231,7 @@ Schoenfeld residuals test applied to all 11 genes. All p > 0.05 — PH assumptio
 ## 10. SOFTWARE AND REPRODUCIBILITY
 
 ### LLM Assistance
-Claude (Anthropic) used for code syntax assistance and Snakemake pipeline construction. To be disclosed in manuscript acknowledgments.
+Claude (Anthropic) used for code syntax assistance and Snakemake pipeline construction.
 
 ### Proteomics Raw Data
 Raw proteomics files (CPTAC_S1_clinical.xlsb, CPTAC_S3_tumor_NAT.xlsx) not pushed to GitHub — files belong to Liu et al. 2024 and are available from the original publication. Place in `results/proteomics/` before running Stage 7.
@@ -254,11 +256,11 @@ The following files must be manually obtained and placed in the specified direct
 | `CPTAC_S3_tumor_NAT.xlsx` | Liu et al. 2024, Cell, Supplementary Table S3A |
 
 **STRING and Cytoscape files** — place in `results/PPI/` (see Section 5 for naming convention):
-- Full network: `hub_network_edges.tsv`, `hub_network_degrees.tsv`, `hub_network_annotations.tsv`
+- Full network: `hub_network_edges.tsv`, `hub_network_degrees.tsv`, `consensus_annotations.tsv`
 - Full network CytoHubba: `MCC_top_10.csv`, `Betweenness_top_10.csv`
 - Per cluster (1–4): `cluster{N}_edges.tsv`, `cluster{N}_degrees.tsv`, `cluster{N}_annotations.tsv`
 - Per cluster CytoHubba (clusters 1–3 only): `cluster{N}_MCC_top10.csv`, `cluster{N}_betweenness_top10.csv`
-- Supplementary: `cluster5_annotations.tsv`, `consensus_annotations.tsv`
+- Supplementary: `cluster5_annotations.tsv`,
 
 **DAVID enrichment files** — place in `results/enrichment/`:
 - `cluster1_enrichment.csv`, `cluster2_enrichment.csv`, `cluster3_enrichment.csv`, `cluster4_enrichment.csv`
@@ -271,30 +273,11 @@ The following steps require manual execution and cannot be automated in the Snak
 4. **DAVID (Checkpoint 3)**: Upload `cluster{N}_genes.txt` for clusters 1–4 to DAVID, run functional annotation, rename exports to `cluster{N}_enrichment.csv`.
 
 ### Pipeline Execution Notes
-- All notebooks use `os.chdir('..')` in the first cell to set the working directory to the repo root, enabling correct relative path resolution when executed via Snakemake's `nbconvert`.
+- All notebooks use a dynamic working directory resolution in the first cell to set the working directory to the repo root, enabling correct relative path resolution when executed interactively or via Snakemake's nbconvert:
+	import os
+	from pathlib import Path
+	os.chdir(Path.cwd().parent if Path.cwd().name == 'notebooks' else Path.cwd())
 - Snakemake must be run from the repository root directory.
-- Executed notebooks (`*_executed.ipynb`) are excluded from GitHub via `.gitignore` — they are generated locally during pipeline runs.
+- Executed notebooks (*_executed.ipynb) are excluded from GitHub via .gitignore — they are generated locally during pipeline runs. The GitHub source notebooks are the authoritative reference for analytical code.
 - The `data/`, `logs/`, `checkpoints/`, and `results/proteomics/` directories are excluded from GitHub. All other `results/` subdirectories containing non-proprietary outputs are tracked.
-
-### Authoritative Outputs:
-
-The executed notebooks (*_executed.ipynb) are the authoritative version of all analytical results. Where discrepancies exist between original and executed notebooks, the executed file takes precedence. All reported numbers in the manuscript are traceable to executed notebook outputs.
-executed notebooks are the local authoritative reference for reported numbers and are not pushed to the public repository.
-
-### Discussion Flags:
-
-Discussion Flags (internal — remove before publication)
-Notch asymmetry: The asymmetry between Notch rescue (OR=3.884, n=48) and suppression (OR=2.790, n=7) independently corroborates downregulation dominance. Convergent evidence across functional mouse model and three-platform transcriptomic consensus. State in Discussion when addressing Notch validation results.
-Inter-cluster limitation: Hub gene identification was performed within cluster boundaries. Inter-cluster connector genes — nodes most topologically important across cluster boundaries — were not captured. Known constraint of the cluster-resolved approach; state as a limitation in Discussion. Future direction: inter-cluster hub analysis to be addressed in subsequent work.
-The George et al. reference serves two purposes: it's the source of the GSE69091 dataset (already cited in Methods) and the life extension finding in the mouse model provides independent in vivo support for the biological relevance of Notch activation in SCLC. That argument belongs in Discussion when you contextualize the Notch validation results.
-Proteomics FC and post-transcriptional regulation (Discussion flag): CASP1, IL18, and TLR2 passed the transcriptional threshold (padj < 0.05, |log2FC| ≥ 1) but show attenuated protein-level fold changes in the CPTAC dataset (CASP1 ~-0.8 log2FC), falling below the |log2FC| ≥ 1 threshold used by Liu et al. This suggests post-transcriptional regulation moderates the protein-level signal. Notably, despite the attenuated FC, CASP1 and IL18 show stronger hazard ratios than Liu et al. markers under median split analysis, supporting the argument that transcriptional network analysis captures biologically meaningful survival signals that proteomics-first approaches may underweight.
-Caspase family convergence with Liu et al. (Discussion flag): Liu et al. identified CASP10 as a survival-relevant marker; this study identifies CASP1. These are distinct proteins — CASP10 is an initiator caspase in the extrinsic apoptosis pathway, CASP1 is an inflammatory caspase mediating pyroptosis and IL-1β/IL-18 processing. Frame in Discussion as convergent evidence pointing to caspase-mediated immune signaling as a survival-relevant axis in SCLC, while explicitly acknowledging the mechanistic distinction. Do not overstate as identical biology.
-The 23 hub genes absent from the CPTAC proteomics dataset were not detected by mass spectrometry, which reflects the experimental sensitivity bounds of the proteomics assay rather than a failure of the transcriptional signal. Their biological relevance cannot be confirmed or excluded from the current data. Future proteomics studies with broader coverage may recover these genes.
-The CPTAC proteomics dataset covers 9,559 proteins compared to 15,481 genes in the transcriptomic universe — a coverage gap that accounts for the 23 undetected hub genes. This is the most straightforward methodological criticism the paper faces and should be explicitly acknowledged in limitations. Two future directions: (1) targeted proteomics assay designed around the identified hub genes with prospective survival tracking; (2) transcriptomic survival validation in an independent cohort (e.g. George cohort) as a complementary approach that bypasses proteomics coverage constraints. Note that transcriptomic survival validation would not backtrack — it would add a parallel validation layer, not replace the proteomics step.
-
-### Clean UP
-Remove internal comments from notebooks before making repo public and run all the notebook once
-Change downregulated gene color in cluster 4 network figure from purple to cyan for consistency with clusters 1–3
-Final read.me update after paper is done
-Final clean up for DECSIOn.md after paper is done
-Check the titles of all the generated figures and make changes where ever necessary to keep consistency
+- mygene API calls may produce minor variability in gene universe size across runs (observed range: 15,477–15,504). The final clean run (15,477 genes) is authoritative for all reported numbers.
