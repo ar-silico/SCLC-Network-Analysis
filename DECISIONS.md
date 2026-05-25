@@ -161,7 +161,7 @@ Fisher's exact test used to confirm Notch rescue and suppression overlaps are no
 - Universe = 15,481 genes (consensus gene pool)
 
 ### Rescued Hub Genes
-Cross-referencing the full 50 hub genes across all four clusters against Notch-rescued consensus DEGs identified: **CD44, CCND1, ITGA8** rescued by Notch activation. No hub genes were suppressed by Notch activation. ITGA8 is a Cluster 4 ECM hub gene — its rescue by Notch connects Notch signaling to ECM remodeling in SCLC. KDR was identified in the initial whole-network hub analysis but is absent from the full 50-hub analysis, as it was not among the final MCC+Betweenness selected hub genes.
+Cross-referencing the full 50 hub genes across all four clusters against Notch-rescued consensus DEGs identified: **CD44, CCND1, ITGA8** rescued by Notch activation. No hub genes were suppressed by Notch activation. CCND1 from Cluster 3, CD44 and ITGA8 from Cluster 4 — thier rescue by Notch connects Notch signaling to ECM remodeling in SCLC. KDR was identified in the initial whole-network hub analysis but is absent from the full 50-hub analysis, as it was not among the final MCC+Betweenness selected hub genes.
 
 ---
 
@@ -279,9 +279,22 @@ The following steps require manual execution and cannot be automated in the Snak
 ### Authoritative Outputs:
 
 The executed notebooks (*_executed.ipynb) are the authoritative version of all analytical results. Where discrepancies exist between original and executed notebooks, the executed file takes precedence. All reported numbers in the manuscript are traceable to executed notebook outputs.
+executed notebooks are the local authoritative reference for reported numbers and are not pushed to the public repository.
 
 ### Discussion Flags:
 
 Discussion Flags (internal — remove before publication)
 Notch asymmetry: The asymmetry between Notch rescue (OR=3.884, n=48) and suppression (OR=2.790, n=7) independently corroborates downregulation dominance. Convergent evidence across functional mouse model and three-platform transcriptomic consensus. State in Discussion when addressing Notch validation results.
 Inter-cluster limitation: Hub gene identification was performed within cluster boundaries. Inter-cluster connector genes — nodes most topologically important across cluster boundaries — were not captured. Known constraint of the cluster-resolved approach; state as a limitation in Discussion. Future direction: inter-cluster hub analysis to be addressed in subsequent work.
+The George et al. reference serves two purposes: it's the source of the GSE69091 dataset (already cited in Methods) and the life extension finding in the mouse model provides independent in vivo support for the biological relevance of Notch activation in SCLC. That argument belongs in Discussion when you contextualize the Notch validation results.
+Proteomics FC and post-transcriptional regulation (Discussion flag): CASP1, IL18, and TLR2 passed the transcriptional threshold (padj < 0.05, |log2FC| ≥ 1) but show attenuated protein-level fold changes in the CPTAC dataset (CASP1 ~-0.8 log2FC), falling below the |log2FC| ≥ 1 threshold used by Liu et al. This suggests post-transcriptional regulation moderates the protein-level signal. Notably, despite the attenuated FC, CASP1 and IL18 show stronger hazard ratios than Liu et al. markers under median split analysis, supporting the argument that transcriptional network analysis captures biologically meaningful survival signals that proteomics-first approaches may underweight.
+Caspase family convergence with Liu et al. (Discussion flag): Liu et al. identified CASP10 as a survival-relevant marker; this study identifies CASP1. These are distinct proteins — CASP10 is an initiator caspase in the extrinsic apoptosis pathway, CASP1 is an inflammatory caspase mediating pyroptosis and IL-1β/IL-18 processing. Frame in Discussion as convergent evidence pointing to caspase-mediated immune signaling as a survival-relevant axis in SCLC, while explicitly acknowledging the mechanistic distinction. Do not overstate as identical biology.
+The 23 hub genes absent from the CPTAC proteomics dataset were not detected by mass spectrometry, which reflects the experimental sensitivity bounds of the proteomics assay rather than a failure of the transcriptional signal. Their biological relevance cannot be confirmed or excluded from the current data. Future proteomics studies with broader coverage may recover these genes.
+The CPTAC proteomics dataset covers 9,559 proteins compared to 15,481 genes in the transcriptomic universe — a coverage gap that accounts for the 23 undetected hub genes. This is the most straightforward methodological criticism the paper faces and should be explicitly acknowledged in limitations. Two future directions: (1) targeted proteomics assay designed around the identified hub genes with prospective survival tracking; (2) transcriptomic survival validation in an independent cohort (e.g. George cohort) as a complementary approach that bypasses proteomics coverage constraints. Note that transcriptomic survival validation would not backtrack — it would add a parallel validation layer, not replace the proteomics step.
+
+### Clean UP
+Remove internal comments from notebooks before making repo public and run all the notebook once
+Change downregulated gene color in cluster 4 network figure from purple to cyan for consistency with clusters 1–3
+Final read.me update after paper is done
+Final clean up for DECSIOn.md after paper is done
+Check the titles of all the generated figures and make changes where ever necessary to keep consistency
