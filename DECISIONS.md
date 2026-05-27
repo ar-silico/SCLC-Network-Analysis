@@ -54,6 +54,9 @@ Single normal sample confirmed as normal lung tissue. Sample classification by '
 ### GSE60052 Low-Expression Filter
 Genes expressed (>0) in fewer than 10% of samples were removed. Rationale: GSE60052 is the largest dataset (n=86); at this sample size, genes detected in fewer than 10% of samples (fewer than 9 samples) more likely reflect stochastic sequencing variation than true absence of expression. This filter was not applied to the microarray datasets — their smaller sample sizes make the 10% threshold an unreliable criterion for distinguishing technical noise from true low expression.
 
+### GSE60052 PCA appearance
+The PCA shows wide dispersion of SCLC samples with normal samples clustering in a relatively tight group. This is expected given the severe sample size imbalance (79 SCLC vs 7 Normal) — principal components are dominated by variance within the SCLC group. The normal samples cluster distinctly from the main SCLC distribution, confirming group-level transcriptomic separation. No samples were removed based on PCA — the dispersion reflects biological heterogeneity within SCLC rather than technical artifacts.
+
 ### GSE60052 Microarray Union Filter
 RNA-seq matrix filtered to the union of GSE30219 and GSE149507 gene spaces. Rationale: consensus DEGs are bounded by the smallest dataset — harmonizing the RNA-seq set to the microarray gene universe prevents RNA-seq-exclusive genes from inflating the consensus. This ensures all three datasets contribute comparably to the consensus.
 

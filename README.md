@@ -78,7 +78,7 @@ All source notebooks are in `notebooks/`. They can be run interactively in Jupyt
 Preprint available on bioRxiv (link to be added upon submission). Citation will be updated upon publication.
 
 ### Acknowledgments
-We thank the Kathmandu University Biotechnology Department. We thank our supervisor Ms. Amrita Acharya for her continued supervision and feedback on the manuscript. We thank [Name, University of Glasgow] for suggesting proteomics-level validation. We also thank our peer Nirja Krishna Pandit for his contribution to the project’s preliminary version. We also acknowledge Claude (Anthropic) for providing assistance in coding syntax and the Snakemake pipeline construction. 
+We thank the Kathmandu University Biotechnology Department. We thank our supervisor Ms. Amrita Acharya for her continued supervision and feedback on the manuscript. We thank Richard Burchmore, University of Glasgow, for suggesting proteomics-level validation. We also thank our peer Nirja Krishna Pandit for his contribution to the project’s preliminary version. We also acknowledge Claude (Anthropic) for providing assistance in coding syntax and the Snakemake pipeline construction. 
 Note: All analytical decisions and biological interpretations are solely those of the authors.
 
 ### License
