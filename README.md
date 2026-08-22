@@ -1,5 +1,5 @@
 # SCLC Network Analysis
-## Prognostic biomarkers and parallel oncogenic programs in SCLC concealed by network topology bias uncovered through cluster-resolved analysis
+## Biomarkers and concurrent oncogenic programs in SCLC concealed by network topology bias uncovered through cluster-resolution 
 ### Reproducible computational pipeline for consensus DEG analysis, PPI network clustering, proteomics validation, and survival analysis in SCLC.
 
 ### Authors
