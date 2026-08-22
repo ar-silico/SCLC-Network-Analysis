@@ -12,7 +12,7 @@ Amrita Acharya — Supervisor, Kathmandu University, Nepal
 This repository contains all code and analysis pipelines for a multi-platform bioinformatics study identifying parallel oncogenic programs and biomarkers in Small Cell Lung Cancer (SCLC) through consensus transcriptomic differential gene expression (DEG) network analysis, proteomics validation, and survival analysis.
 
 ### Key Findings
-- Identified four biologically distinct concurrent oncogenic programs in SCLC through MCL clustering of consensus DEG-derived PPI network, with downregulation dominance observed across three of four clusters and the broader consensus DEG landscape
+- Identified four biologically distinct coordinated concurrent oncogenic programs in SCLC through MCL clustering of consensus DEG-derived PPI network, with downregulation dominance observed across three of four clusters and the broader consensus DEG landscape
 - Cross-platform proteomics validation of network-derived hub genes in 112 treatment-naive SCLC patients
 - CASP1, IL18 and TLR2 identified as novel prognostic biomarkers: CASP1 (HR=0.372, 95% CI: 0.207–0.667, adjusted p=0.0044), IL18 (HR=0.382, 95% CI: 0.213–0.685, adjusted p=0.0044), TLR2 (HR=0.490, 95% CI: 0.278–0.863, adjusted p=0.0427) — surviving Benjamini-Hochberg multiple testing correction
 - Demonstrated proliferation topological bias in cancer PPI networks and proposed MCL clustering as methodological solution
